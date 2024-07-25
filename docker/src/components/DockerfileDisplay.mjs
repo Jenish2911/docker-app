@@ -7,6 +7,7 @@ const DisplayContainer = styled.div`
   background-color: ${props => props.theme.white};
   border: 1px solid ${props => props.theme.secondary};
   border-radius: 4px;
+  color:${props => props.theme.black};
 `;
 
 const DockerfileContent = styled.pre`
@@ -25,10 +26,16 @@ const FinalizeButton = styled.button`
   border-radius: 4px;
 `;
 
-const DockerfileDisplay = ({ dockerfile, onFinalize }) => (
+const DockerfileDisplay = ({ dockerfile, command, onFinalize }) => (
   <DisplayContainer>
     <h3>Generated Dockerfile:</h3>
     <DockerfileContent>{dockerfile}</DockerfileContent>
+    {command && (
+      <>
+        <h4>Command to run:</h4>
+        <DockerfileContent>{command}</DockerfileContent>
+      </>
+    )}
     <FinalizeButton onClick={onFinalize}>Finalize Dockerfile</FinalizeButton>
   </DisplayContainer>
 );

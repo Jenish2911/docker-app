@@ -10,7 +10,7 @@ CORS(app)
 # Initialize the Google Gemini model with your API key
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-pro",
-    google_api_key='YOUR_API_KEY',
+    google_api_key='Your api key',
     temperature=0,
     max_tokens=None,
     timeout=None,
@@ -24,8 +24,9 @@ prompt_template = ChatPromptTemplate.from_messages([
     Your task is to gather information and generate a Dockerfile. Follow these steps:
 
     1. Analyze the user's input.
-    2. If you need more information, ask as many follow-up questions as needed but ask every question you have at once if you have any doubt in the answer you can followup for if you need the folder stucture you can provide a python script that returns the path which then can be sent to you make sure all the required questions are covered.
-    3. If you have all the necessary information, generate the Dockerfile with the command required to run it if need be you can also genrate a docker-compose file.
+    2. If you need more information, ask all the questions at once,you may follow up after the user responses if you have any query 
+    3 if you need the folder stucture you can provide a python script that returns the path which then can be sent to you make sure all the required questions are covered.
+    4. If you have all the necessary information, generate the Dockerfile with the command required to run it if need be you can also genrate a docker-compose file.
 
     When asking a follow-up question, format your response as:
     FOLLOW_UP: [Your question here]
@@ -33,6 +34,8 @@ prompt_template = ChatPromptTemplate.from_messages([
     When generating the Dockerfile, format your response as:
     DOCKERFILE:
     [Dockerfile content here]
+    COMMAND:
+    [Command to run the docker file]
 
     Always provide only ONE follow-up question or the Dockerfile, never both in the same response.
     """),
@@ -58,18 +61,26 @@ def handle_message():
     if response.startswith("FOLLOW_UP:"):
         ai_message = response.replace("FOLLOW_UP:", "").strip()
         response_type = "follow_up"
+        dockerfile = None
+        command = None
     elif response.startswith("DOCKERFILE:"):
         ai_message = "Great! I have enough information to generate the Dockerfile. Here it is:"
-        dockerfile = response.split("DOCKERFILE:")[1].strip()
+        dockerfile_and_command = response.split("DOCKERFILE:")[1].strip()
+        dockerfile_parts = dockerfile_and_command.split("COMMAND:")
+        dockerfile = dockerfile_parts[0].strip()
+        command = dockerfile_parts[1].strip() if len(dockerfile_parts) > 1 else None
         response_type = "dockerfile"
     else:
         ai_message = response
         response_type = "message"
+        dockerfile = None
+        command = None
 
     return jsonify({
         "message": ai_message,
         "type": response_type,
-        "dockerfile": dockerfile if response_type == "dockerfile" else None
+        "dockerfile": dockerfile,
+        "command": command
     })
 
 if __name__ == '__main__':

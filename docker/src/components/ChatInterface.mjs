@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { PersonIcon } from '../icons/PersonIcon.js';
 import { RobotIcon } from '../icons/RobotIcon.js';
 import { SendIcon } from '../icons/SendIcon.js';
+import DockerfileDisplay from './DockerfileDisplay.mjs';
 import axios from 'axios'
 
 const ChatContainer = styled.div`
@@ -92,7 +93,8 @@ const IconWrapper = styled.div`
 const ChatInterface = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-
+  const [dockerfile, setDockerfile] = useState(null);
+  const [command, setCommand] = useState(null);
   const handleSend = () => {
     if (input.trim()) {
       setMessages([...messages, { text: input, sender: 'user' }]);
@@ -100,6 +102,10 @@ const ChatInterface = () => {
         .then(response => {
           console.log(response.data);
           setMessages(prev => [...prev, { text: response.data.message, sender: 'ai' }]);
+          if (response.data.type === 'dockerfile') {
+            setDockerfile(response.data.dockerfile);
+            setCommand(response.data.command);  
+          }
         })
         .catch(error => {
           console.error('Error:', error);
@@ -108,33 +114,43 @@ const ChatInterface = () => {
       setInput('');
     }
   };
-
-    return (
-      <ChatContainer>
-        <MessagesContainer>
-          {messages.map((message, index) => (
-            <MessageBubble key={index} style={{justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start'}}>
-              {message.sender === 'ai' && <IconWrapper><RobotIcon /></IconWrapper>}
-              <MessageContent isUser={message.sender === 'user'}>
-                {message.text}
-              </MessageContent>
-              {message.sender === 'user' && <IconWrapper isUser><PersonIcon /></IconWrapper>}
-            </MessageBubble>
-          ))}
-        </MessagesContainer>
-        <InputContainer>
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message here"
-          />
-          <SendButton onClick={handleSend}>
-            <SendIcon />
-          </SendButton>
-        </InputContainer>
-          
-      </ChatContainer>
-    );
+  const handleFinalizeDockerfile = () => {
+    // Here you can add logic to save or process the finalized Dockerfile
+    console.log("Dockerfile finalized:", dockerfile);
+    // You might want to send this to the server or perform other actions
   };
+
+  return (
+    <ChatContainer>
+      <MessagesContainer>
+        {messages.map((message, index) => (
+          <MessageBubble key={index} style={{justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start'}}>
+            {message.sender === 'ai' && <IconWrapper><RobotIcon /></IconWrapper>}
+            <MessageContent isUser={message.sender === 'user'}>
+              {message.text}
+            </MessageContent>
+            {message.sender === 'user' && <IconWrapper isUser><PersonIcon /></IconWrapper>}
+          </MessageBubble>
+        ))}
+      </MessagesContainer>
+      {dockerfile && (
+  <DockerfileDisplay 
+    dockerfile={dockerfile}
+    command={command}
+    onFinalize={handleFinalizeDockerfile} 
+  />
+)}
+      <InputContainer>
+        <Input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type your message here"
+        />
+        <SendButton onClick={handleSend}>
+          <SendIcon />
+        </SendButton>
+      </InputContainer>
+    </ChatContainer>
+  )};
 
   export default ChatInterface;

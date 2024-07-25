@@ -16,8 +16,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <AppContainer>
         <ChatInterface />
-        <DockerfileDisplay />
-        
+       
       </AppContainer>
     </ThemeProvider>
   );
